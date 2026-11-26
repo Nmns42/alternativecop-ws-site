@@ -1,0 +1,19 @@
+# --- Fichiers à ne JAMAIS publier (dépôt public) ---
+cloud.md
+CLOUD.md
+**/cloud.md
+CLAUDE.md
+**/CLAUDE.md
+.claude/
+# Secrets et fichiers locaux
+.env
+.env.*
+*.key
+*.pem
+*.local
+# Systèmes / éditeurs
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+node_modules/

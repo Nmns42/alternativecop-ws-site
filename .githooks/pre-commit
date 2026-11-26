@@ -1,0 +1,10 @@
+#!/bin/sh
+# Bloque tout commit contenant cloud.md / CLAUDE.md (dépôt public).
+blocked=$(git diff --cached --name-only --diff-filter=ACMR | grep -iE '(^|/)(cloud|claude)\.md$')
+if [ -n "$blocked" ]; then
+  echo "COMMIT REFUSÉ : fichier interdit dans un dépôt public :"
+  echo "$blocked"
+  echo "Retirez-le avec : git rm --cached <fichier>"
+  exit 1
+fi
+exit 0

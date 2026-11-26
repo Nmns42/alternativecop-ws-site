@@ -1,0 +1,55 @@
+name: Contrôles de sécurité
+
+on:
+  push:
+  pull_request:
+
+# Moindre privilège : lecture seule du contenu, rien d'autre.
+permissions:
+  contents: read
+
+concurrency:
+  group: controles-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Action externe épinglée par SHA complet (actions/checkout v7.0.1).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: CNAME valide s'il existe
+        run: |
+          if [ -f CNAME ]; then
+            d=$(tr -d '[:space:]' < CNAME)
+            echo "$d" | grep -qE '^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$' || { echo "::error::CNAME invalide : $d"; exit 1; }
+            echo "OK : domaine personnalisé = $d"
+          else
+            echo "OK : pas de domaine personnalisé (adresse github.io)."
+          fi
+
+      - name: Aucun cloud.md / CLAUDE.md (fichiers suivis et historique)
+        run: |
+          tracked=$(git ls-files | grep -iE '(^|/)(cloud|claude)\.md$' || true)
+          if [ -n "$tracked" ]; then echo "::error::Fichier interdit suivi : $tracked"; exit 1; fi
+          history=$(git log --all --name-only --pretty=format: | grep -iE '(^|/)(cloud|claude)\.md$' | sort -u || true)
+          if [ -n "$history" ]; then echo "::error::Fichier interdit présent dans l'historique : $history"; exit 1; fi
+          echo "OK : aucun fichier interdit."
+
+      - name: Détection de secrets, jetons et clés
+        run: |
+          pattern='(gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{35}|xox[abprs]-[A-Za-z0-9-]{10,}|sk-[A-Za-z0-9]{32,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|(password|passwd|secret|api[_-]?key|token)[[:space:]]*[:=][[:space:]]*["'"'"'][^"'"'"']{8,})'
+          hits=$(git ls-files -z | xargs -0 grep -nIE "$pattern" -- 2>/dev/null | grep -v '^.github/workflows/' || true)
+          if [ -n "$hits" ]; then echo "::error::Secret potentiel détecté :"; echo "$hits"; exit 1; fi
+          echo "OK : aucun secret détecté."
+
+      - name: Aucune ressource externe chargée par les pages
+        run: |
+          ext=$(grep -nE '<(script|link|img|iframe)[^>]+(src|href)="https?://' *.html || true)
+          if [ -n "$ext" ]; then echo "::error::Ressource externe chargée :"; echo "$ext"; exit 1; fi
+          echo "OK : toutes les ressources sont auto-hébergées."
