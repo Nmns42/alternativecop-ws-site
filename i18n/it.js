@@ -1,9 +1,9 @@
 /* COP Alternativa : testi in italiano. */
 window.I18N = window.I18N || {};
 window.I18N.it = {
-  "_title.home": "COP Alternative WS | 1–5 febbraio 2027",
-  "_title.docs": "Documentazione | COP Alternative WS",
-  "_title.legal": "Note legali, privacy e sicurezza | COP Alternative WS",
+  "_title.home": "COP Alternativa WS | 1–5 febbraio 2027",
+  "_title.docs": "Documentazione | COP Alternativa WS",
+  "_title.legal": "Note legali, privacy e sicurezza | COP Alternativa WS",
   _logoAlt: "Logo della COP Alternativa",
   skip: "Vai al contenuto", menu: "Menu", navLabel: "Navigazione principale",
   "brand": "COP<br><span>Alternativa WS</span>", "brandPlain": "COP Alternativa WS",
